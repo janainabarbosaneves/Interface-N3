@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N3 · Relatório de Tickets</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #13161e;
+  --surface2: #1a1e2a;
+  --border: #252a38;
+  --accent: #4f8ef7;
+  --accent2: #7c5cfc;
+  --green: #2ecc8a;
+  --yellow: #f5c542;
+  --red: #f05b6e;
+  --orange: #f5894e;
+  --purple: #a78bfa;
+  --text: #e8eaf2;
+  --muted: #6b7394;
+  --tag-bg: #1e2336;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; min-height: 100vh; }
+
+/* HEADER */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  gap: 16px; flex-wrap: wrap;
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; color: #fff;
+}
+.logo-text { font-weight: 700; font-size: 17px; }
+.logo-text span { color: var(--accent); }
+.header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.stat-pill {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);
+  display: flex; align-items: center; gap: 5px;
+}
+.stat-pill b { color: var(--text); }
+.export-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 14px;
+  color: var(--muted); font-size: 11px; cursor: pointer;
+  font-family: 'Sora', sans-serif; transition: all .2s;
+}
+.export-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* TOOLBAR */
+#toolbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 12px 32px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.search-box {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 12px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 12px;
+  outline: none; width: 220px; transition: border-color .2s;
+}
+.search-box:focus { border-color: var(--accent); }
+select {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 10px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 12px; outline: none; cursor: pointer;
+}
+select:focus { border-color: var(--accent); }
+.sep { width: 1px; height: 20px; background: var(--border); }
+.count-badge {
+  margin-left: auto;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 20px;
+  padding: 5px 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);
+}
+.count-badge b { color: var(--text); }
+
+/* UPLOAD BAR */
+#upload-bar {
+  background: #0f1a2e; border-bottom: 1px solid #1e3a5f;
+  padding: 10px 32px; display: flex; align-items: center; gap: 12px;
+  font-size: 12px; color: #5b8fc4;
+}
+.upload-label {
+  background: var(--accent); border: none; border-radius: 5px;
+  padding: 5px 12px; color: #fff; font-size: 11px; font-family: 'Sora', sans-serif;
+  cursor: pointer; transition: opacity .2s;
+}
+.upload-label:hover { opacity: .85; }
+
+/* MAIN */
+#main { padding: 24px 32px; max-width: 1100px; margin: 0 auto; }
+
+/* SUMMARY CARDS */
+.summary-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;
+}
+.summary-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px;
+}
+.summary-card .s-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 6px; }
+.summary-card .s-value { font-size: 26px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.summary-card .s-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* CHIT */
+.chit {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  margin-bottom: 10px; overflow: hidden; transition: border-color .2s, box-shadow .2s;
+  animation: fadeUp .3s ease both;
+}
+.chit:hover { border-color: #353b52; box-shadow: 0 2px 16px rgba(0,0,0,.3); }
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+.chit-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 18px; border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.ticket-id {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  color: var(--accent); background: #0d1a2e; border: 1px solid #1e3a5f;
+  border-radius: 4px; padding: 2px 7px; white-space: nowrap; flex-shrink: 0;
+}
+.chit-title { font-size: 13px; font-weight: 600; flex: 1; line-height: 1.4; }
+.nivel-badge {
+  font-size: 13px; flex-shrink: 0;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 4px; padding: 2px 6px; font-size: 11px;
+}
+.priority-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.chit-body {
+  padding: 14px 18px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 16px;
+}
+.cf { }
+.cf .fl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-bottom: 3px; }
+.cf .fv { font-size: 12px; color: var(--text); line-height: 1.4; }
+.cf.span2 { grid-column: span 2; }
+.cf.span4 { grid-column: 1 / -1; }
+
+.status-badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 9px; border-radius: 20px; font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.s-Aberto     { background:#0d2e1a; color:var(--green);  border:1px solid #1a5c33; }
+.s-Pendente   { background:#2a1e0d; color:var(--yellow); border:1px solid #5c3e1a; }
+.s-Em-espera  { background:#1e1a2a; color:var(--purple); border:1px solid #3e2a5c; }
+.s-Squad      { background:#0d1a2e; color:var(--accent); border:1px solid #1e3a5f; }
+.s-Novo       { background:#0d2a2a; color:#2eeccc;       border:1px solid #1a5c5c; }
+
+.p-Alta   { color:var(--orange); }
+.p-Normal { color:var(--accent); }
+.p-Baixa  { color:var(--muted); }
+.p-Urgente{ color:var(--red); }
+
+.sla-vencido { color: var(--red) !important; font-weight: 600; }
+.sla-urgente { color: var(--orange) !important; font-weight: 600; }
+.sla-ok      { color: var(--green) !important; }
+
+.jira-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #0d1f3a; border: 1px solid #1e3a6a;
+  border-radius: 4px; padding: 2px 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5b9cf6;
+  text-decoration: none;
+}
+.jira-link:hover { background: #1e3a6a; }
+
+/* EMPTY */
+#empty { display:none; text-align:center; padding:60px 20px; color:var(--muted); }
+
+/* UPLOAD OVERLAY */
+#drop-zone {
+  display: none; position: fixed; inset: 0; background: rgba(13,15,20,.95);
+  z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+  border: 3px dashed var(--accent); font-size: 18px; font-weight: 600;
+}
+body.dragging #drop-zone { display: flex; }
+
+@media (max-width: 700px) {
+  header, #toolbar, #main { padding-left: 16px; padding-right: 16px; }
+  .chit-body { grid-template-columns: 1fr 1fr; }
+  .summary-row { grid-template-columns: 1fr 1fr; }
+  .cf.span2, .cf.span4 { grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+
+<div id="drop-zone">📂 Solte o CSV aqui para atualizar</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">N3</div>
+    <div class="logo-text">Ticket <span>Chits</span></div>
+  </div>
+  <div class="header-right">
+    <div class="stat-pill">Total <b id="h-total">—</b></div>
+    <div class="stat-pill">🔴 Vencidos <b id="h-vencidos">—</b></div>
+    <div class="stat-pill">📅 <b id="h-date">—</b></div>
+    <button class="export-btn" onclick="exportCSV()">⬇ Exportar filtrado</button>
+    <label class="upload-label">📂 Novo CSV <input type="file" accept=".csv,.zip" style="display:none" onchange="handleFile(this.files[0])"></label>
+  </div>
+</header>
+
+<div id="upload-bar">
+  💡 Para atualizar: exporte um novo CSV do Zendesk e clique em <b style="color:var(--accent);margin:0 4px">Novo CSV</b> — ou arraste o arquivo para a página.
+</div>
+
+<div id="toolbar">
+  <input class="search-box" type="text" placeholder="🔍 ID, assunto, responsável..." id="search-input" oninput="applyFilters()">
+  <div class="sep"></div>
+  <select id="f-status" onchange="applyFilters()">
+    <option value="">Todos os status</option>
+    <option>Aberto</option><option>Pendente</option><option>Em espera</option><option>Squad</option>
+  </select>
+  <select id="f-grupo" onchange="applyFilters()">
+    <option value="">Todos os grupos</option>
+  </select>
+  <select id="f-prioridade" onchange="applyFilters()">
+    <option value="">Todas as prioridades</option>
+    <option>Alta</option><option>Normal</option><option>Baixa</option>
+  </select>
+  <select id="f-nivel" onchange="applyFilters()">
+    <option value="">Todos os níveis</option>
+    <option>🥇A</option><option>🥈B</option><option>🥉C</option>
+  </select>
+  <select id="f-sort" onchange="applyFilters()">
+    <option value="sla_asc">SLA ↑ (mais urgente)</option>
+    <option value="data_desc">Abertura ↓</option>
+    <option value="data_asc">Abertura ↑</option>
+    <option value="atualizado_desc">Atualização ↓</option>
+  </select>
+  <div class="sep"></div>
+  <div class="count-badge"><b id="count">—</b> tickets</div>
+</div>
+
+<div id="main">
+  <div class="summary-row" id="summary-row"></div>
+  <div id="tickets-container"></div>
+  <div id="empty">
+    <div style="font-size:32px;margin-bottom:12px">📭</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:4px">Nenhum ticket encontrado</div>
+    <div style="font-size:13px">Ajuste os filtros para ver resultados</div>
+  </div>
+</div>
+
+<script>
+const TICKETS_DATA = [{"ID": "2279556", "Status do ticket": "Aberto", "SLA": "2026-05-04 13:49", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-24 13:49", "Atualizado": "2026-04-24 13:50", "Grupo": "Gestão Médica", "Assunto": "[Gestão Médica] Atendimento Especializado - Motivo: Ética e contratos", "Atribuído": "Escritório De Qualidade Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2288373", "Status do ticket": "Aberto", "SLA": "2026-05-07 16:50", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-29 16:50", "Atualizado": "2026-04-30 16:36", "Grupo": "Gestão Médica", "Assunto": "[Gestão Médica] Atendimento Especializado - Motivo: Ética e contratos", "Atribuído": "Escritório De Qualidade Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2289319", "Status do ticket": "Aberto", "SLA": "2026-05-08 09:53", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-30 09:53", "Atualizado": "2026-04-30 16:36", "Grupo": "Gestão Médica", "Assunto": "[Gestão Médica] Atendimento Especializado - Motivo: Ética e contratos", "Atribuído": "Escritório De Qualidade Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2290201", "Status do ticket": "Aberto", "SLA": "2026-05-08 14:49", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-30 14:49", "Atualizado": "2026-04-30 16:38", "Grupo": "Gestão Médica", "Assunto": "[Gestão Médica] Atendimento Especializado - Motivo: Ética e contratos", "Atribuído": "Escritório De Qualidade Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2248642", "Status do ticket": "Aberto", "SLA": "2026-04-10 15:53", "Nível✦ ": "🥇A", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-02 10:40", "Atualizado": "2026-05-11 09:59", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - JESSIKA DANTAS ROLIM DE LIRA", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2306568", "Status do ticket": "Aberto", "SLA": "2026-05-15 17:36", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-08 17:36", "Atualizado": "2026-05-11 10:35", "Grupo": "Gestão Médica", "Assunto": "[Gestão Médica] Atendimento Especializado - Motivo: Ética e contratos", "Atribuído": "Escritório De Qualidade Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2290080", "Status do ticket": "Aberto", "SLA": "2026-05-18 11:58", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-30 14:41", "Atualizado": "2026-05-11 11:58", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - Simao De Sousa Vieira", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2290687", "Status do ticket": "Aberto", "SLA": "2026-05-15 18:00", "Nível✦ ": "🥇A", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-30 16:47", "Atualizado": "2026-05-11 12:15", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - MARIA CAROLINA GONCALVES BERTOLDO", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2246537", "Status do ticket": "Aberto", "SLA": "2026-04-09 14:40", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-01 09:55", "Atualizado": "2026-05-12 16:13", "Grupo": "Proteção de Dados", "Assunto": "Solicitação de prontuário - (Paciente Zenklub)", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2315490", "Status do ticket": "Aberto", "SLA": "2026-05-19 14:13", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-14 17:13", "Atualizado": "2026-05-15 08:10", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2278551", "Status do ticket": "Aberto", "SLA": "2026-05-07 18:15", "Nível✦ ": "🥈B", "Prioridade": "Alta", "ID Jira": "POP-4000", "Data da solicitação": "2026-04-23 19:46", "Atualizado": "2026-05-15 15:10", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2272991", "Status do ticket": "Aberto", "SLA": "2026-04-23 13:24", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-04-20 15:24", "Atualizado": "2026-05-15 15:37", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2278562", "Status do ticket": "Aberto", "SLA": "2026-04-27 16:00", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-04-23 19:51", "Atualizado": "2026-05-15 15:39", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2314335", "Status do ticket": "Aberto", "SLA": "2026-05-15 17:54", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-14 10:54", "Atualizado": "2026-05-15 19:34", "Grupo": "Suporte N3", "Assunto": "[N3] Consultório online - Psicólogo | Consulta", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2314533", "Status do ticket": "Aberto", "SLA": "2026-05-19 09:01", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-14 12:01", "Atualizado": "2026-05-18 09:47", "Grupo": "Suporte N3", "Assunto": "[N3] AGENTE LIGHT | Agendamento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2315590", "Status do ticket": "Aberto", "SLA": "2026-05-21 09:23", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-14 17:53", "Atualizado": "2026-05-18 13:57", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2314357", "Status do ticket": "Aberto", "SLA": "2026-05-18 09:04", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-14 11:04", "Atualizado": "2026-05-18 15:18", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2319585", "Status do ticket": "Aberto", "SLA": "2026-05-20 09:06", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-18 11:06", "Atualizado": "2026-05-18 15:18", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2319596", "Status do ticket": "Aberto", "SLA": "2026-05-20 09:08", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-18 11:08", "Atualizado": "2026-05-18 15:21", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2319916", "Status do ticket": "Aberto", "SLA": "2026-05-19 11:34", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-18 12:34", "Atualizado": "2026-05-18 15:45", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2317766", "Status do ticket": "Aberto", "SLA": "2026-05-20 13:17", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "ATZ-2392", "Data da solicitação": "2026-05-15 16:17", "Atualizado": "2026-05-18 16:38", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "Pablo Rodrigo", "Solicitante": "JANAINA NEVES"}, {"ID": "2320372", "Status do ticket": "Aberto", "SLA": "2026-05-21 11:41", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-18 14:41", "Atualizado": "2026-05-19 08:38", "Grupo": "Suporte N3", "Assunto": "[N3] - | -", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2320530", "Status do ticket": "Aberto", "SLA": "2026-05-21 12:25", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-18 15:25", "Atualizado": "2026-05-19 08:38", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2320703", "Status do ticket": "Aberto", "SLA": "2026-05-21 13:11", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-18 16:11", "Atualizado": "2026-05-19 08:38", "Grupo": "Suporte N3", "Assunto": "[N3] - | -", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2315537", "Status do ticket": "Aberto", "SLA": "2026-05-19 14:29", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-14 17:29", "Atualizado": "2026-05-19 15:15", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2322936", "Status do ticket": "Aberto", "SLA": "2026-05-20 13:48", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-19 14:48", "Atualizado": "2026-05-19 15:26", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2320669", "Status do ticket": "Aberto", "SLA": "2026-05-25 16:02", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-18 16:02", "Atualizado": "2026-05-19 16:40", "Grupo": "Gestão Médica", "Assunto": "[Gestão Médica] Atendimento Especializado - Motivo: Ética e contratos", "Atribuído": "Escritório De Qualidade Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2323099", "Status do ticket": "Aberto", "SLA": "2026-05-22 12:45", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-19 15:45", "Atualizado": "2026-05-20 08:15", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2316508", "Status do ticket": "Aberto", "SLA": "2026-05-27 09:50", "Nível✦ ": "🥇A", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-15 11:46", "Atualizado": "2026-05-20 09:50", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - Priscilla Goncalves De Azevedo", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2325953", "Status do ticket": "Aberto", "SLA": "2026-05-27 16:20", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-20 16:20", "Atualizado": "2026-05-20 16:20", "Grupo": "Gestão Médica", "Assunto": "[Gestão Médica] Atendimento Especializado - Motivo: Agendamento", "Atribuído": "Escritório De Qualidade Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2319731", "Status do ticket": "Aberto", "SLA": "2026-05-20 09:30", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-18 11:30", "Atualizado": "2026-05-20 16:38", "Grupo": "Suporte N3", "Assunto": "[N3] - | Fila de atendimento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2319858", "Status do ticket": "Aberto", "SLA": "2026-05-20 10:13", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-18 12:13", "Atualizado": "2026-05-20 16:38", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2323082", "Status do ticket": "Aberto", "SLA": "2026-05-20 11:41", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-19 15:41", "Atualizado": "2026-05-20 19:38", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2323252", "Status do ticket": "Aberto", "SLA": "2026-05-22 13:35", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-19 16:35", "Atualizado": "2026-05-20 19:38", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2323793", "Status do ticket": "Aberto", "SLA": "2026-05-22 14:57", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-19 17:57", "Atualizado": "2026-05-20 19:39", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2323817", "Status do ticket": "Aberto", "SLA": "2026-05-22 15:00", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-19 18:10", "Atualizado": "2026-05-20 19:39", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2324710", "Status do ticket": "Aberto", "SLA": "2026-05-20 15:57", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 10:57", "Atualizado": "2026-05-20 20:20", "Grupo": "Suporte N3", "Assunto": "[N3] - | Liberação de consulta", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2324748", "Status do ticket": "Aberto", "SLA": "2026-05-20 16:05", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 11:05", "Atualizado": "2026-05-20 20:45", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2324934", "Status do ticket": "Aberto", "SLA": "2026-05-20 16:29", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 11:29", "Atualizado": "2026-05-20 20:46", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2325029", "Status do ticket": "Aberto", "SLA": "2026-05-20 17:04", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 12:04", "Atualizado": "2026-05-20 20:46", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2325048", "Status do ticket": "Aberto", "SLA": "2026-05-22 10:14", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 12:14", "Atualizado": "2026-05-20 20:46", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2325754", "Status do ticket": "Aberto", "SLA": "2026-05-25 12:14", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 15:14", "Atualizado": "2026-05-21 08:33", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2326281", "Status do ticket": "Aberto", "SLA": "2026-05-25 13:47", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 16:47", "Atualizado": "2026-05-21 08:33", "Grupo": "Suporte N3", "Assunto": "[N3] - | -", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2325857", "Status do ticket": "Aberto", "SLA": "2026-05-25 12:49", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 15:49", "Atualizado": "2026-05-21 08:33", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2326302", "Status do ticket": "Aberto", "SLA": "2026-05-25 13:55", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 16:55", "Atualizado": "2026-05-21 08:33", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2326409", "Status do ticket": "Aberto", "SLA": "2026-05-25 14:50", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 17:50", "Atualizado": "2026-05-21 08:33", "Grupo": "Suporte N3", "Assunto": "[N3] - | -", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2325821", "Status do ticket": "Aberto", "SLA": "2026-05-25 12:37", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 15:37", "Atualizado": "2026-05-21 08:33", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2325778", "Status do ticket": "Aberto", "SLA": "2026-05-25 12:23", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 15:23", "Atualizado": "2026-05-21 08:33", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2326398", "Status do ticket": "Aberto", "SLA": "2026-05-25 14:43", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 17:43", "Atualizado": "2026-05-21 08:33", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2325879", "Status do ticket": "Aberto", "SLA": "2026-05-25 12:55", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 15:55", "Atualizado": "2026-05-21 08:33", "Grupo": "Suporte N3", "Assunto": "[N3] - | Pós consulta", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2325293", "Status do ticket": "Aberto", "SLA": "2026-05-25 10:58", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-20 13:58", "Atualizado": "2026-05-21 08:33", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2327097", "Status do ticket": "Aberto", "SLA": "2026-05-21 15:06", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-21 10:06", "Atualizado": "2026-05-21 10:06", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "", "Solicitante": "JANAINA NEVES"}, {"ID": "2252667", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-06 18:32", "Atualizado": "2026-04-07 14:23", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - AMANDA FREITAS RAMALHO CILIAO", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2259421", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-10 11:47", "Atualizado": "2026-04-10 17:29", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - SHANA ROSA CALDAS", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2206104", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-03-02 18:45", "Atualizado": "2026-04-17 14:47", "Grupo": "Proteção de Dados", "Assunto": "Solicitação de prontuário - (Paciente Zenklub)", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2270602", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥇A", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-17 14:52", "Atualizado": "2026-04-17 16:56", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário -HENRIQUE FERNANDES MOLES", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2264644", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-14 15:24", "Atualizado": "2026-04-22 16:01", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - NICOLI RODRIGUES SAMPAIO", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2285232", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-28 13:53", "Atualizado": "2026-04-28 18:04", "Grupo": "Proteção de Dados", "Assunto": "Exclusão de dados – SUELEN DA SILVA LOPES", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2284866", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-28 12:25", "Atualizado": "2026-04-29 11:26", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário -LUIZ ANTONIO PIZONI", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2254575", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-07 16:43", "Atualizado": "2026-04-30 10:56", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - GLAUCE MARTINS NOBRE", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2253744", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-07 11:47", "Atualizado": "2026-04-30 11:48", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário -CRISTIANE THAMIRES DOS SANTOS", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2258400", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-04-09 16:48", "Atualizado": "2026-05-04 13:51", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - NATALIA HELENA RAMOS DOS SANTOS", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2294207", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Baixa", "ID Jira": "", "Data da solicitação": "2026-05-04 16:37", "Atualizado": "2026-05-05 16:23", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - LARALIZ SOUTO AMARO DALVA", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2305455", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-08 11:34", "Atualizado": "2026-05-11 10:46", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - Ana Claudia Moura Mendes", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2309404", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥈B", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-11 15:42", "Atualizado": "2026-05-11 16:20", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - Zoe Tiago Silva Da Rosa", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2309547", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥈B", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-11 16:36", "Atualizado": "2026-05-12 11:14", "Grupo": "Proteção de Dados", "Assunto": "Exclusão de dados – Amanda de Santana Pinto", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2315575", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥈B", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-14 17:46", "Atualizado": "2026-05-15 09:56", "Grupo": "Proteção de Dados", "Assunto": "Exclusão de dados – NAIRA MORGANA MENDES DE ALMEIDA", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2316282", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-15 10:00", "Atualizado": "2026-05-15 10:31", "Grupo": "Proteção de Dados", "Assunto": "Exclusão de dados cadastrais (Paciente Zenklub)", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2270639", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥇A", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-04-17 15:10", "Atualizado": "2026-05-15 10:32", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - Kataline Kelle Nascimento Pereira Albuquerque", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2317215", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥈B", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-15 14:32", "Atualizado": "2026-05-15 14:50", "Grupo": "Proteção de Dados", "Assunto": "Exclusão de dados – LUIZ HENRIQUE CORREIA ALVES", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2315341", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-14 16:20", "Atualizado": "2026-05-15 17:34", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "Pablo Rodrigo", "Solicitante": "JANAINA NEVES"}, {"ID": "2320071", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥈B", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-18 13:43", "Atualizado": "2026-05-18 14:00", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - Lissandra Branco Pereira De Freitas", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2317822", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥇A", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-15 16:42", "Atualizado": "2026-05-18 18:09", "Grupo": "Proteção de Dados", "Assunto": "Exclusão de dados – ISABELLA RUCOS DE FARIA", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2316747", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥈B", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-15 12:45", "Atualizado": "2026-05-18 18:13", "Grupo": "Proteção de Dados", "Assunto": "Exclusão de dados – VIVIANE SILVA DE OLIVEIRA", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2282368", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥇A", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-04-27 14:16", "Atualizado": "2026-05-19 10:59", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - Hely Raul Penaranda Marquez", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2321886", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥈B", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-19 10:37", "Atualizado": "2026-05-19 11:00", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - MARIA CAROLINA ARANTES MARQUES DE AGUIAR", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2323374", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥈B", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-19 17:19", "Atualizado": "2026-05-20 10:07", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - JORGE AUGUSTO SANTOS MONTEIRO", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2315508", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-14 17:19", "Atualizado": "2026-05-20 16:38", "Grupo": "Suporte N3", "Assunto": "[N3] - | Fila de atendimento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2319913", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥇A", "Prioridade": "Alta", "ID Jira": "", "Data da solicitação": "2026-05-18 12:32", "Atualizado": "2026-05-20 16:50", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2326350", "Status do ticket": "Pendente", "SLA": "", "Nível✦ ": "🥈B", "Prioridade": "Normal", "ID Jira": "", "Data da solicitação": "2026-05-20 17:19", "Atualizado": "2026-05-20 17:19", "Grupo": "Proteção de Dados", "Assunto": "Copia do prontuário - CONRADO ALVES MIGRAY", "Atribuído": "Conexa", "Solicitante": "JANAINA NEVES"}, {"ID": "2315561", "Status do ticket": "Squad", "SLA": "2026-05-19 14:39", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "VC-735", "Data da solicitação": "2026-05-14 17:39", "Atualizado": "2026-05-15 10:03", "Grupo": "Suporte N3", "Assunto": "[N3] - | Consulta", "Atribuído": "Pablo Rodrigo", "Solicitante": "JANAINA NEVES"}, {"ID": "2317794", "Status do ticket": "Em espera", "SLA": "2026-05-20 13:29", "Nível✦ ": "🥈B", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-15 16:29", "Atualizado": "2026-05-18 10:07", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2317779", "Status do ticket": "Em espera", "SLA": "2026-05-20 13:25", "Nível✦ ": "🥈B", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-15 16:25", "Atualizado": "2026-05-18 10:08", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2316341", "Status do ticket": "Em espera", "SLA": "2026-05-18 17:24", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-15 10:24", "Atualizado": "2026-05-18 10:09", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2306622", "Status do ticket": "Em espera", "SLA": "2026-05-13 15:00", "Nível✦ ": "🥇A", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-08 18:09", "Atualizado": "2026-05-18 10:10", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2311628", "Status do ticket": "Em espera", "SLA": "2026-05-13 15:38", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-12 16:38", "Atualizado": "2026-05-18 10:11", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2316321", "Status do ticket": "Em espera", "SLA": "2026-05-18 17:14", "Nível✦ ": "🥇A", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-15 10:14", "Atualizado": "2026-05-18 10:12", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2315392", "Status do ticket": "Em espera", "SLA": "2026-05-19 13:42", "Nível✦ ": "🥈B", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-14 16:42", "Atualizado": "2026-05-18 10:13", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2309530", "Status do ticket": "Em espera", "SLA": "2026-05-14 13:30", "Nível✦ ": "🥉C", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-11 16:30", "Atualizado": "2026-05-18 10:18", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2311702", "Status do ticket": "Em espera", "SLA": "2026-05-15 14:03", "Nível✦ ": "🥇A", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-12 17:03", "Atualizado": "2026-05-18 10:19", "Grupo": "Suporte N3", "Assunto": "[N3] - | Agendamento", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2316577", "Status do ticket": "Em espera", "SLA": "2026-05-19 10:16", "Nível✦ ": "🥇A", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-15 12:16", "Atualizado": "2026-05-18 10:19", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2301263", "Status do ticket": "Em espera", "SLA": "2026-05-08 14:17", "Nível✦ ": "🥈B", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-06 16:17", "Atualizado": "2026-05-18 10:21", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2306541", "Status do ticket": "Em espera", "SLA": "2026-05-13 14:24", "Nível✦ ": "🥇A", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-08 17:24", "Atualizado": "2026-05-18 10:22", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}, {"ID": "2319849", "Status do ticket": "Em espera", "SLA": "2026-05-20 10:10", "Nível✦ ": "🥇A", "Prioridade": "Alta", "ID Jira": "slack", "Data da solicitação": "2026-05-18 12:10", "Atualizado": "2026-05-20 10:15", "Grupo": "Suporte N3", "Assunto": "[N3] - | Incidente na plataforma", "Atribuído": "Tayane Virgínio", "Solicitante": "JANAINA NEVES"}];
+
+let allTickets = [];
+const now = new Date();
+
+function init(data) {
+  allTickets = data;
+  populateGrupos();
+  updateStats();
+  applyFilters();
+  document.getElementById('h-date').textContent = now.toLocaleDateString('pt-BR');
+  document.getElementById('h-total').textContent = data.length;
+}
+
+function populateGrupos() {
+  const grupos = [...new Set(allTickets.map(t => t['Grupo']).filter(Boolean))].sort();
+  const sel = document.getElementById('f-grupo');
+  grupos.forEach(g => {
+    const o = document.createElement('option'); o.textContent = g; sel.appendChild(o);
+  });
+}
+
+function slaInfo(t) {
+  const slaStr = t['SLA'];
+  if (!slaStr) return { label: '—', cls: '', ts: Infinity };
+  const slaDate = new Date(slaStr.replace(' ', 'T'));
+  const diff = (slaDate - now) / 3600000;
+  const ts = slaDate.getTime();
+  if (diff < 0)   return { label: `Vencido há ${Math.abs(diff).toFixed(0)}h`, cls: 'sla-vencido', ts };
+  if (diff < 4)   return { label: `${diff.toFixed(1)}h restantes`, cls: 'sla-urgente', ts };
+  return { label: `${diff.toFixed(0)}h restantes`, cls: 'sla-ok', ts };
+}
+
+function updateStats() {
+  const vencidos = allTickets.filter(t => {
+    const s = t['SLA']; if (!s) return false;
+    return new Date(s.replace(' ','T')) < now;
+  }).length;
+  document.getElementById('h-vencidos').textContent = vencidos;
+}
+
+function renderSummary(tickets) {
+  const byStatus = {};
+  tickets.forEach(t => { const s = t['Status do ticket']; byStatus[s] = (byStatus[s]||0)+1; });
+  const venc = tickets.filter(t => { const s=t['SLA']; return s && new Date(s.replace(' ','T'))<now; }).length;
+  const semResponsavel = tickets.filter(t => !t['Atribuído']).length;
+  const comJira = tickets.filter(t => t['ID Jira']).length;
+
+  const cards = [
+    { label: 'Abertos', value: byStatus['Aberto']||0, sub: 'status Aberto', color: 'var(--green)' },
+    { label: 'Pendentes', value: (byStatus['Pendente']||0)+(byStatus['Em espera']||0)+(byStatus['Squad']||0), sub: 'pendente / espera / squad', color: 'var(--yellow)' },
+    { label: 'SLA Vencido', value: venc, sub: 'prazo expirado', color: 'var(--red)' },
+    { label: 'Sem responsável', value: semResponsavel, sub: 'não atribuídos', color: 'var(--orange)' },
+  ];
+
+  document.getElementById('summary-row').innerHTML = cards.map(c => `
+    <div class="summary-card">
+      <div class="s-label">${c.label}</div>
+      <div class="s-value" style="color:${c.color}">${c.value}</div>
+      <div class="s-sub">${c.sub}</div>
+    </div>
+  `).join('');
+}
+
+function applyFilters() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const fStatus = document.getElementById('f-status').value;
+  const fGrupo = document.getElementById('f-grupo').value;
+  const fPrio = document.getElementById('f-prioridade').value;
+  const fNivel = document.getElementById('f-nivel').value;
+  const sort = document.getElementById('f-sort').value;
+
+  let result = allTickets.filter(t => {
+    if (fStatus && t['Status do ticket'] !== fStatus) return false;
+    if (fGrupo  && t['Grupo'] !== fGrupo) return false;
+    if (fPrio   && t['Prioridade'] !== fPrio) return false;
+    if (fNivel  && t['Nível✦ '] !== fNivel) return false;
+    if (search) {
+      const hay = `#${t.ID} ${t['Assunto']} ${t['Atribuído']} ${t['Solicitante']} ${t['ID Jira']}`.toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  result.sort((a, b) => {
+    if (sort === 'sla_asc') {
+      const sa = slaInfo(a).ts, sb = slaInfo(b).ts;
+      if (sa === Infinity && sb === Infinity) return 0;
+      if (sa === Infinity) return 1;
+      if (sb === Infinity) return -1;
+      return sa - sb;
+    }
+    if (sort === 'data_desc') return new Date(b['Data da solicitação']) - new Date(a['Data da solicitação']);
+    if (sort === 'data_asc')  return new Date(a['Data da solicitação']) - new Date(b['Data da solicitação']);
+    if (sort === 'atualizado_desc') return new Date(b['Atualizado']) - new Date(a['Atualizado']);
+    return 0;
+  });
+
+  document.getElementById('count').textContent = result.length;
+  renderSummary(result);
+
+  const container = document.getElementById('tickets-container');
+  container.innerHTML = '';
+  document.getElementById('empty').style.display = result.length ? 'none' : 'block';
+
+  result.forEach((t, i) => { container.innerHTML += renderChit(t, i); });
+}
+
+function renderChit(t, i) {
+  const status = t['Status do ticket'] || '';
+  const statusKey = status.replace(/\s+/g, '-');
+  const prioridade = t['Prioridade'] || '—';
+  const nivel = t['Nível✦ '] || '';
+  const sla = slaInfo(t);
+
+  const pDot = { Alta:'var(--orange)', Normal:'var(--accent)', Baixa:'var(--muted)', Urgente:'var(--red)' }[prioridade] || 'var(--muted)';
+
+  const jira = t['ID Jira'];
+  const jiraHtml = jira
+    ? `<a class="jira-link" href="https://jira.atlassian.net/browse/${esc(jira)}" target="_blank">🔗 ${esc(jira)}</a>`
+    : '<span style="color:var(--muted);font-size:12px">—</span>';
+
+  const atrib = t['Atribuído'] || '<span style="color:var(--orange);font-size:11px">⚠ Não atribuído</span>';
+
+  return `
+  <div class="chit" style="animation-delay:${Math.min(i*0.03,0.5)}s">
+    <div class="chit-header">
+      <span class="ticket-id">#${esc(t.ID)}</span>
+      <span class="chit-title">${esc(t['Assunto'])}</span>
+      <span class="nivel-badge">${nivel}</span>
+      <span class="priority-dot" style="background:${pDot}" title="${prioridade}"></span>
+    </div>
+    <div class="chit-body">
+      <div class="cf">
+        <div class="fl">Status</div>
+        <div class="fv"><span class="status-badge s-${statusKey}">${esc(status)}</span></div>
+      </div>
+      <div class="cf">
+        <div class="fl">Prioridade</div>
+        <div class="fv p-${esc(prioridade)}" style="font-weight:600">${esc(prioridade)}</div>
+      </div>
+      <div class="cf">
+        <div class="fl">Grupo</div>
+        <div class="fv">${esc(t['Grupo'] || '—')}</div>
+      </div>
+      <div class="cf">
+        <div class="fl">ID Jira</div>
+        <div class="fv">${jiraHtml}</div>
+      </div>
+      <div class="cf span2">
+        <div class="fl">Responsável</div>
+        <div class="fv">${typeof atrib === 'string' && atrib.startsWith('<') ? atrib : esc(atrib)}</div>
+      </div>
+      <div class="cf span2">
+        <div class="fl">Solicitante</div>
+        <div class="fv">${esc(t['Solicitante'] || '—')}</div>
+      </div>
+      <div class="cf">
+        <div class="fl">Aberto em</div>
+        <div class="fv">${fmtDate(t['Data da solicitação'])}</div>
+      </div>
+      <div class="cf">
+        <div class="fl">Atualizado</div>
+        <div class="fv">${fmtDate(t['Atualizado'])}</div>
+      </div>
+      <div class="cf span2">
+        <div class="fl">SLA</div>
+        <div class="fv ${sla.cls}">${sla.label}${t['SLA'] ? ' <span style="color:var(--muted);font-weight:400;font-size:10px">(limite: '+esc(t['SLA'])+')</span>' : ''}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s.replace(' ','T'));
+  return d.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// CSV Upload
+function handleFile(file) {
+  if (!file) return;
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.zip')) {
+    alert('Arquivo ZIP detectado. Por favor, extraia o ZIP e selecione o arquivo .csv diretamente.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const tickets = parseCSV(e.target.result);
+      allTickets = tickets;
+      document.getElementById('h-total').textContent = tickets.length;
+      document.getElementById('f-grupo').innerHTML = '<option value="">Todos os grupos</option>';
+      populateGrupos();
+      updateStats();
+      applyFilters();
+    } catch(err) {
+      alert('Erro ao ler CSV: ' + err.message);
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function parseCSV(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  if (lines.length < 2) throw new Error('CSV vazio ou inválido');
+  const headers = parseLine(lines[0]);
+  return lines.slice(1).map(l => {
+    const vals = parseLine(l);
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (vals[i]||'').replace(/^'/, '').trim());
+    return obj;
+  }).filter(r => r[headers[0]]);
+}
+
+function parseLine(line) {
+  const result = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"' && !inQ) { inQ = true; }
+    else if (c === '"' && inQ) { if (line[i+1] === '"') { cur += '"'; i++; } else inQ = false; }
+    else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+    else cur += c;
+  }
+  result.push(cur);
+  return result;
+}
+
+// Export filtered
+function exportCSV() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const fStatus = document.getElementById('f-status').value;
+  const fGrupo = document.getElementById('f-grupo').value;
+  const fPrio = document.getElementById('f-prioridade').value;
+  const fNivel = document.getElementById('f-nivel').value;
+
+  let result = allTickets.filter(t => {
+    if (fStatus && t['Status do ticket'] !== fStatus) return false;
+    if (fGrupo  && t['Grupo'] !== fGrupo) return false;
+    if (fPrio   && t['Prioridade'] !== fPrio) return false;
+    if (fNivel  && t['Nível✦ '] !== fNivel) return false;
+    if (search) {
+      const hay = `#${t.ID} ${t['Assunto']} ${t['Atribuído']} ${t['Solicitante']} ${t['ID Jira']}`.toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const keys = Object.keys(result[0]||{});
+  const rows = [keys.join(','), ...result.map(r => keys.map(k => `"${(r[k]||'').replace(/"/g,'""')}"`).join(','))];
+  const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `n3-tickets-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// Drag & drop
+document.addEventListener('dragenter', () => document.body.classList.add('dragging'));
+document.addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('dragging'); });
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+  e.preventDefault(); document.body.classList.remove('dragging');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+// Boot
+init(TICKETS_DATA);
+</script>
+</body>
+</html>
