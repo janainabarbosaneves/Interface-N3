@@ -1,0 +1,22 @@
+name: Ticket Chits - Alerta Slack
+
+on:
+  schedule:
+    - cron: '0 9 */2 * *'
+  workflow_dispatch:
+
+jobs:
+  alerta:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Buscar dados e enviar pro Slack
+        run: |
+          HTML=$(curl -s https://janainabarbosaneves.github.io/Interface-N3/)
+          TOTAL=$(echo "$HTML" | grep -oP '(?<=Total[^0-9]{0,20})\d+' | head -1)
+          SLA=$(echo "$HTML" | grep -oP '(?<=Vencido[^0-9]{0,20})\d+' | head -1)
+          SEM_RESP=$(echo "$HTML" | grep -oP '(?<=SEM RESPONSÁVEL[^0-9]{0,20})\d+' | head -1)
+          ABERTOS=$(echo "$HTML" | grep -oP '(?<=ABERTOS[^0-9]{0,20})\d+' | head -1)
+          DATA=$(TZ='America/Sao_Paulo' date '+%d/%m/%Y %H:%M')
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+          -H 'Content-type: application/json' \
+          --data "{\"text\": \"🎫 *Resumo Ticket Chits N3 — $DATA*\n\n📊 *Total:* ${TOTAL:-?} tickets\n🔴 *SLA Vencido:* ${SLA:-?} tickets\n👤 *Sem Responsável:* ${SEM_RESP:-?} tickets\n📂 *Abertos:* ${ABERTOS:-?} tickets\n\n🔗 https://janainabarbosaneves.github.io/Interface-N3/\"}"
