@@ -638,7 +638,39 @@ document.addEventListener('drop', e => {
   const file = e.dataTransfer.files[0];
   if (file) handleFile(file);
 });
+// Envio automático pro Slack a cada 2 dias
+async function enviarResumoSlack(tickets) {
+  try {
+    const WEBHOOK = 'https://hooks.slack.com/services/SEU_WEBHOOK_AQUI';
+    const ultimoEnvio = localStorage.getItem('slack_ultimo_envio');
+    const agora = Date.now();
+    const DOIS_DIAS = 2 * 24 * 60 * 60 * 1000;
+    if (ultimoEnvio && (agora - parseInt(ultimoEnvio)) < DOIS_DIAS) return;
 
+    const now = new Date();
+    const vencidos = tickets.filter(t => {
+      const s = t['SLA']; if (!s) return false;
+      return new Date(s.replace(' ','T')) < now;
+    }).length;
+    const semResp = tickets.filter(t => !t['Atribuído']).length;
+    const abertos = tickets.filter(t => t['Status do ticket'] === 'Aberto').length;
+    const data = now.toLocaleString('pt-BR');
+
+    await fetch(WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text:
+        `🎫 *Resumo Ticket Chits N3 — ${data}*\n\n` +
+        `📊 *Total:* ${tickets.length} tickets\n` +
+        `🔴 *SLA Vencido:* ${vencidos} tickets\n` +
+        `👤 *Sem Responsável:* ${semResp} tickets\n` +
+        `📂 *Abertos:* ${abertos} tickets\n\n` +
+        `🔗 https://janainabarbosaneves.github.io/Interface-N3/`
+      })
+    });
+    localStorage.setItem('slack_ultimo_envio', agora.toString());
+  } catch(e) { console.log('Slack:', e); }
+}
 // Boot — carrega sempre a última extração do localStorage
 (function() {
   try {
@@ -648,6 +680,7 @@ document.addEventListener('drop', e => {
       const tickets = JSON.parse(saved);
       if (Array.isArray(tickets) && tickets.length > 0) {
         init(tickets);
+        enviarResumoSlack(tickets);
         if (savedDate) document.getElementById('h-date').textContent = savedDate;
         return;
       }
