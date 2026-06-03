@@ -24,8 +24,6 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; min-height: 100vh; }
-
-/* HEADER */
 header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -59,8 +57,6 @@ header {
   font-family: 'Sora', sans-serif; transition: all .2s;
 }
 .export-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-/* TOOLBAR */
 #toolbar {
   background: var(--surface); border-bottom: 1px solid var(--border);
   padding: 12px 32px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
@@ -83,7 +79,6 @@ select:focus { border-color: var(--accent); }
   padding: 5px 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);
 }
 .count-badge b { color: var(--text); }
-
 .date-group { display:flex; align-items:center; gap:6px; }
 .date-label { font-size:11px; color:var(--muted); white-space:nowrap; }
 input[type="date"] {
@@ -101,26 +96,10 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0.6); curs
 .keyword-wrap { position:relative; display:flex; align-items:center; }
 .keyword-clear {
   position:absolute; right:8px; background:none; border:none;
-  color:var(--muted); font-size:14px; cursor:pointer; padding:0; line-height:1;
-  transition:color .2s;
+  color:var(--muted); font-size:14px; cursor:pointer; padding:0; line-height:1; transition:color .2s;
 }
 .keyword-clear:hover { color:var(--red); }
-.keyword-clear:empty { display:none; }
-.active-filters {
-  display:flex; flex-wrap:wrap; gap:5px; align-items:center;
-  padding:6px 32px; background:var(--surface); border-bottom:1px solid var(--border);
-}
-.af-chip {
-  display:inline-flex; align-items:center; gap:5px;
-  background:var(--surface2); border:1px solid var(--border); border-radius:20px;
-  padding:3px 10px; font-size:11px; color:var(--text);
-}
-.af-chip span { color:var(--accent); font-weight:600; }
-.af-chip button { background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px; padding:0; line-height:1; }
-.af-chip button:hover { color:var(--red); }
 #active-filters-bar { display:none; }
-
-/* UPLOAD BAR */
 #upload-bar {
   background: #0f1a2e; border-bottom: 1px solid #1e3a5f;
   padding: 10px 32px; display: flex; align-items: center; gap: 12px;
@@ -132,11 +111,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0.6); curs
   cursor: pointer; transition: opacity .2s;
 }
 .upload-label:hover { opacity: .85; }
-
-/* MAIN */
 #main { padding: 24px 32px; max-width: 1100px; margin: 0 auto; }
-
-/* SUMMARY CARDS */
 .summary-row {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;
 }
@@ -147,8 +122,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0.6); curs
 .summary-card .s-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 6px; }
 .summary-card .s-value { font-size: 26px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
 .summary-card .s-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-/* CHIT */
 .chit {
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
   margin-bottom: 10px; overflow: hidden; transition: border-color .2s, box-shadow .2s;
@@ -156,7 +129,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0.6); curs
 }
 .chit:hover { border-color: #353b52; box-shadow: 0 2px 16px rgba(0,0,0,.3); }
 @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-
 .chit-header {
   display: flex; align-items: center; gap: 10px;
   padding: 13px 18px; border-bottom: 1px solid var(--border);
@@ -169,22 +141,18 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0.6); curs
 }
 .chit-title { font-size: 13px; font-weight: 600; flex: 1; line-height: 1.4; }
 .nivel-badge {
-  font-size: 13px; flex-shrink: 0;
-  background: var(--bg); border: 1px solid var(--border);
+  flex-shrink: 0; background: var(--bg); border: 1px solid var(--border);
   border-radius: 4px; padding: 2px 6px; font-size: 11px;
 }
 .priority-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
 .chit-body {
   padding: 14px 18px;
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 16px;
 }
-.cf { }
 .cf .fl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-bottom: 3px; }
 .cf .fv { font-size: 12px; color: var(--text); line-height: 1.4; }
 .cf.span2 { grid-column: span 2; }
 .cf.span4 { grid-column: 1 / -1; }
-
 .status-badge {
   display: inline-flex; align-items: center;
   padding: 2px 9px; border-radius: 20px; font-size: 10px; font-weight: 600;
@@ -195,16 +163,13 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0.6); curs
 .s-Em-espera  { background:#1e1a2a; color:var(--purple); border:1px solid #3e2a5c; }
 .s-Squad      { background:#0d1a2e; color:var(--accent); border:1px solid #1e3a5f; }
 .s-Novo       { background:#0d2a2a; color:#2eeccc;       border:1px solid #1a5c5c; }
-
 .p-Alta   { color:var(--orange); }
 .p-Normal { color:var(--accent); }
 .p-Baixa  { color:var(--muted); }
 .p-Urgente{ color:var(--red); }
-
 .sla-vencido { color: var(--red) !important; font-weight: 600; }
 .sla-urgente { color: var(--orange) !important; font-weight: 600; }
 .sla-ok      { color: var(--green) !important; }
-
 .jira-link {
   display: inline-flex; align-items: center; gap: 4px;
   background: #0d1f3a; border: 1px solid #1e3a6a;
@@ -213,18 +178,13 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0.6); curs
   text-decoration: none;
 }
 .jira-link:hover { background: #1e3a6a; }
-
-/* EMPTY */
 #empty { display:none; text-align:center; padding:60px 20px; color:var(--muted); }
-
-/* UPLOAD OVERLAY */
 #drop-zone {
   display: none; position: fixed; inset: 0; background: rgba(13,15,20,.95);
   z-index: 200; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
   border: 3px dashed var(--accent); font-size: 18px; font-weight: 600;
 }
 body.dragging #drop-zone { display: flex; }
-
 @media (max-width: 700px) {
   header, #toolbar, #main { padding-left: 16px; padding-right: 16px; }
   .chit-body { grid-template-columns: 1fr 1fr; }
@@ -256,7 +216,6 @@ body.dragging #drop-zone { display: flex; }
 </div>
 
 <div id="toolbar">
-  <!-- Row 1: busca + filtros principais -->
   <div class="keyword-wrap">
     <input class="search-box" type="text" placeholder="🔍 Buscar por palavra-chave..." id="search-input" oninput="applyFilters()" style="padding-right:28px;width:250px">
     <button class="keyword-clear" id="kw-clear" onclick="clearKeyword()" title="Limpar busca" style="display:none">✕</button>
@@ -284,7 +243,6 @@ body.dragging #drop-zone { display: flex; }
     <option value="atualizado_desc">Atualização ↓</option>
   </select>
   <div class="sep"></div>
-  <!-- Row 2: filtro de datas -->
   <div class="date-group">
     <span class="date-label">📅 Abertura:</span>
     <input type="date" id="f-date-from" onchange="applyFilters()" title="De">
@@ -296,7 +254,6 @@ body.dragging #drop-zone { display: flex; }
   <div class="count-badge"><b id="count">—</b> tickets</div>
 </div>
 
-<!-- Chips de filtros ativos -->
 <div id="active-filters-bar"></div>
 
 <div id="main">
@@ -310,9 +267,10 @@ body.dragging #drop-zone { display: flex; }
 </div>
 
 <script>
-const TICKETS_DATA = []; // dados removidos — app usa localStorage
+const TICKETS_DATA = [];
 
 let allTickets = [];
+let filtered = []; // ✅ FIX 1: variável global que sempre reflete o que está na tela
 const now = new Date();
 
 function init(data) {
@@ -356,7 +314,6 @@ function renderSummary(tickets) {
   tickets.forEach(t => { const s = t['Status do ticket']; byStatus[s] = (byStatus[s]||0)+1; });
   const venc = tickets.filter(t => { const s=t['SLA']; return s && new Date(s.replace(' ','T'))<now; }).length;
   const semResponsavel = tickets.filter(t => !t['Atribuído']).length;
-  const comJira = tickets.filter(t => t['ID Jira']).length;
 
   const cards = [
     { label: 'Abertos', value: byStatus['Aberto']||0, sub: 'status Aberto', color: 'var(--green)' },
@@ -384,11 +341,9 @@ function applyFilters() {
   const dateFrom = document.getElementById('f-date-from').value;
   const dateTo   = document.getElementById('f-date-to').value;
 
-  // Mostra/oculta botão de limpar keyword
   const kwClear = document.getElementById('kw-clear');
   if (kwClear) kwClear.style.display = search ? 'block' : 'none';
 
-  // Palavras-chave: suporta múltiplas separadas por espaço (AND implícito)
   const keywords = search ? search.split(/\s+/).filter(Boolean) : [];
 
   let result = allTickets.filter(t => {
@@ -397,14 +352,12 @@ function applyFilters() {
     if (fPrio   && t['Prioridade'] !== fPrio) return false;
     if (fNivel  && t['Nível✦ '] !== fNivel) return false;
 
-    // Filtro de data de abertura
     if (dateFrom || dateTo) {
       const tDate = t['Data da solicitação'] ? t['Data da solicitação'].split(' ')[0] : '';
       if (dateFrom && tDate < dateFrom) return false;
       if (dateTo   && tDate > dateTo)   return false;
     }
 
-    // Busca por palavra-chave — campo ampliado (inclui assunto, ID, responsável, solicitante, grupo, jira, tags)
     if (keywords.length) {
       const hay = [
         '#' + t.ID,
@@ -417,7 +370,6 @@ function applyFilters() {
         t['Prioridade'] || '',
         t['Nível✦ '] || '',
       ].join(' ').toLowerCase();
-      // Todos os termos devem aparecer (AND)
       if (!keywords.every(kw => hay.includes(kw))) return false;
     }
     return true;
@@ -436,6 +388,9 @@ function applyFilters() {
     if (sort === 'atualizado_desc') return new Date(b['Atualizado']) - new Date(a['Atualizado']);
     return 0;
   });
+
+  // ✅ FIX 2: salva resultado na variável global antes de renderizar
+  filtered = result;
 
   document.getElementById('count').textContent = result.length;
   renderSummary(result);
@@ -523,7 +478,6 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// CSV Upload
 function handleFile(file) {
   if (!file) return;
   const name = file.name.toLowerCase();
@@ -536,11 +490,10 @@ function handleFile(file) {
     try {
       const tickets = parseCSV(e.target.result);
       allTickets = tickets;
-      // Salva a última extração no localStorage
       try {
         localStorage.setItem('n3_tickets', JSON.stringify(tickets));
         localStorage.setItem('n3_tickets_date', new Date().toLocaleDateString('pt-BR'));
-      } catch(ex) { /* ignora erros de quota */ }
+      } catch(ex) {}
       document.getElementById('h-total').textContent = tickets.length;
       document.getElementById('f-grupo').innerHTML = '<option value="">Todos os grupos</option>';
       populateGrupos();
@@ -578,58 +531,35 @@ function parseLine(line) {
   return result;
 }
 
-// Limpar filtros de data
 function clearDates() {
   document.getElementById('f-date-from').value = '';
   document.getElementById('f-date-to').value = '';
   applyFilters();
 }
 
-// Limpar busca por palavra-chave
 function clearKeyword() {
   document.getElementById('search-input').value = '';
   applyFilters();
 }
 
-// Export filtered
+// ✅ FIX 3: exportCSV usa `filtered` diretamente — exporta exatamente o que está na tela
 function exportCSV() {
-  const search = document.getElementById('search-input').value.toLowerCase();
-  const fStatus = document.getElementById('f-status').value;
-  const fGrupo = document.getElementById('f-grupo').value;
-  const fPrio = document.getElementById('f-prioridade').value;
-  const fNivel = document.getElementById('f-nivel').value;
-
-  const dateFrom = document.getElementById('f-date-from').value;
-  const dateTo   = document.getElementById('f-date-to').value;
-  const keywords = search ? search.split(/\s+/).filter(Boolean) : [];
-
-  let result = allTickets.filter(t => {
-    if (fStatus && t['Status do ticket'] !== fStatus) return false;
-    if (fGrupo  && t['Grupo'] !== fGrupo) return false;
-    if (fPrio   && t['Prioridade'] !== fPrio) return false;
-    if (fNivel  && t['Nível✦ '] !== fNivel) return false;
-    if (dateFrom || dateTo) {
-      const tDate = t['Data da solicitação'] ? t['Data da solicitação'].split(' ')[0] : '';
-      if (dateFrom && tDate < dateFrom) return false;
-      if (dateTo   && tDate > dateTo)   return false;
-    }
-    if (keywords.length) {
-      const hay = [t.ID, t['Assunto'], t['Atribuído'], t['Solicitante'], t['Grupo'], t['ID Jira']].join(' ').toLowerCase();
-      if (!keywords.every(kw => hay.includes(kw))) return false;
-    }
-    return true;
-  });
-
-  const keys = Object.keys(result[0]||{});
-  const rows = [keys.join(','), ...result.map(r => keys.map(k => `"${(r[k]||'').replace(/"/g,'""')}"`).join(','))];
-  const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8'});
+  if (!filtered.length) {
+    alert('Nenhum ticket para exportar. Ajuste os filtros e tente novamente.');
+    return;
+  }
+  const keys = Object.keys(filtered[0]);
+  const rows = [
+    keys.join(','),
+    ...filtered.map(r => keys.map(k => `"${(r[k]||'').replace(/"/g,'""')}"`).join(','))
+  ];
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `n3-tickets-${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
 }
 
-// Drag & drop
 document.addEventListener('dragenter', () => document.body.classList.add('dragging'));
 document.addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('dragging'); });
 document.addEventListener('dragover', e => e.preventDefault());
@@ -638,7 +568,7 @@ document.addEventListener('drop', e => {
   const file = e.dataTransfer.files[0];
   if (file) handleFile(file);
 });
-// Envio automático pro Slack a cada 2 dias
+
 async function enviarResumoSlack(tickets) {
   try {
     const WEBHOOK = 'https://hooks.slack.com/services/SEU_WEBHOOK_AQUI';
@@ -646,16 +576,11 @@ async function enviarResumoSlack(tickets) {
     const agora = Date.now();
     const DOIS_DIAS = 2 * 24 * 60 * 60 * 1000;
     if (ultimoEnvio && (agora - parseInt(ultimoEnvio)) < DOIS_DIAS) return;
-
     const now = new Date();
-    const vencidos = tickets.filter(t => {
-      const s = t['SLA']; if (!s) return false;
-      return new Date(s.replace(' ','T')) < now;
-    }).length;
+    const vencidos = tickets.filter(t => { const s = t['SLA']; if (!s) return false; return new Date(s.replace(' ','T')) < now; }).length;
     const semResp = tickets.filter(t => !t['Atribuído']).length;
     const abertos = tickets.filter(t => t['Status do ticket'] === 'Aberto').length;
     const data = now.toLocaleString('pt-BR');
-
     await fetch(WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -671,7 +596,7 @@ async function enviarResumoSlack(tickets) {
     localStorage.setItem('slack_ultimo_envio', agora.toString());
   } catch(e) { console.log('Slack:', e); }
 }
-// Boot — carrega sempre a última extração do localStorage
+
 (function() {
   try {
     const saved = localStorage.getItem('n3_tickets');
@@ -685,11 +610,9 @@ async function enviarResumoSlack(tickets) {
         return;
       }
     }
-  } catch(e) { /* ignora */ }
-  // Se não houver dados salvos, abre vazio aguardando novo CSV
+  } catch(e) {}
   init([]);
 })();
 </script>
 </body>
 </html>
-
