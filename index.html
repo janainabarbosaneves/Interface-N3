@@ -270,7 +270,7 @@ body.dragging #drop-zone { display: flex; }
 const TICKETS_DATA = [];
 
 let allTickets = [];
-let filtered = []; // ✅ FIX 1: variável global que sempre reflete o que está na tela
+let filtered = [];
 const now = new Date();
 
 function init(data) {
@@ -389,7 +389,6 @@ function applyFilters() {
     return 0;
   });
 
-  // ✅ FIX 2: salva resultado na variável global antes de renderizar
   filtered = result;
 
   document.getElementById('count').textContent = result.length;
@@ -542,7 +541,6 @@ function clearKeyword() {
   applyFilters();
 }
 
-// ✅ FIX 3: exportCSV usa `filtered` diretamente — exporta exatamente o que está na tela
 function exportCSV() {
   if (!filtered.length) {
     alert('Nenhum ticket para exportar. Ajuste os filtros e tente novamente.');
@@ -569,32 +567,109 @@ document.addEventListener('drop', e => {
   if (file) handleFile(file);
 });
 
+// ============================================================
+// FUNÇÃO SLACK — CORRIGIDA: envia detalhes de cada ticket
+// ============================================================
 async function enviarResumoSlack(tickets) {
   try {
     const WEBHOOK = 'https://hooks.slack.com/services/SEU_WEBHOOK_AQUI';
+
+    // Controle de envio: máximo uma vez a cada 2 dias
     const ultimoEnvio = localStorage.getItem('slack_ultimo_envio');
     const agora = Date.now();
     const DOIS_DIAS = 2 * 24 * 60 * 60 * 1000;
     if (ultimoEnvio && (agora - parseInt(ultimoEnvio)) < DOIS_DIAS) return;
+
     const now = new Date();
-    const vencidos = tickets.filter(t => { const s = t['SLA']; if (!s) return false; return new Date(s.replace(' ','T')) < now; }).length;
-    const semResp = tickets.filter(t => !t['Atribuído']).length;
-    const abertos = tickets.filter(t => t['Status do ticket'] === 'Aberto').length;
     const data = now.toLocaleString('pt-BR');
+
+    // ── Calcula totais ──
+    const vencidos   = tickets.filter(t => { const s = t['SLA']; return s && new Date(s.replace(' ','T')) < now; });
+    const semResp    = tickets.filter(t => !t['Atribuído']);
+    const abertos    = tickets.filter(t => t['Status do ticket'] === 'Aberto');
+
+    // ── Bloco de cabeçalho com totais ──
+    const blocks = [
+      {
+        type: 'header',
+        text: { type: 'plain_text', text: `🎫 Resumo Ticket Chits N3 — ${data}`, emoji: true }
+      },
+      {
+        type: 'section',
+        fields: [
+          { type: 'mrkdwn', text: `📊 *Total:* ${tickets.length} tickets` },
+          { type: 'mrkdwn', text: `🔴 *SLA Vencido:* ${vencidos.length} tickets` },
+          { type: 'mrkdwn', text: `👤 *Sem Responsável:* ${semResp.length} tickets` },
+          { type: 'mrkdwn', text: `📂 *Abertos:* ${abertos.length} tickets` }
+        ]
+      },
+      { type: 'divider' }
+    ];
+
+    // ── Detalhe de cada ticket com SLA vencido ──
+    if (vencidos.length > 0) {
+      blocks.push({
+        type: 'section',
+        text: { type: 'mrkdwn', text: `*🔴 Tickets com SLA Vencido (${vencidos.length}):*` }
+      });
+
+      // Slack suporta até ~50 blocos — limita a 20 tickets para segurança
+      vencidos.slice(0, 20).forEach(t => {
+        const id          = t['ID'] || '—';
+        const assunto     = t['Assunto'] || '(sem título)';
+        const responsavel = t['Atribuído'] || '⚠ Não atribuído';
+        const abertura    = t['Data da solicitação']
+          ? new Date(t['Data da solicitação'].replace(' ','T')).toLocaleString('pt-BR')
+          : '—';
+        const slaRaw  = t['SLA'] || '';
+        const slaFmt  = slaRaw
+          ? new Date(slaRaw.replace(' ','T')).toLocaleString('pt-BR')
+          : '—';
+        const diffH   = slaRaw
+          ? Math.abs((new Date(slaRaw.replace(' ','T')) - now) / 3600000).toFixed(0)
+          : '?';
+
+        blocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text:
+              `*#${id} — ${assunto}*\n` +
+              `👤 *Responsável:* ${responsavel}\n` +
+              `📅 *Aberto em:* ${abertura}\n` +
+              `⏰ *SLA venceu:* ${slaFmt} _(há ${diffH}h)_`
+          }
+        });
+        blocks.push({ type: 'divider' });
+      });
+
+      if (vencidos.length > 20) {
+        blocks.push({
+          type: 'section',
+          text: { type: 'mrkdwn', text: `_...e mais ${vencidos.length - 20} tickets vencidos. Veja todos no painel._` }
+        });
+      }
+    }
+
+    // ── Rodapé com link para o painel ──
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `🔗 <https://janainabarbosaneves.github.io/Interface-N3/|Abrir painel completo N3>`
+      }
+    });
+
     await fetch(WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text:
-        `🎫 *Resumo Ticket Chits N3 — ${data}*\n\n` +
-        `📊 *Total:* ${tickets.length} tickets\n` +
-        `🔴 *SLA Vencido:* ${vencidos} tickets\n` +
-        `👤 *Sem Responsável:* ${semResp} tickets\n` +
-        `📂 *Abertos:* ${abertos} tickets\n\n` +
-        `🔗 https://janainabarbosaneves.github.io/Interface-N3/`
-      })
+      body: JSON.stringify({ blocks })
     });
+
     localStorage.setItem('slack_ultimo_envio', agora.toString());
-  } catch(e) { console.log('Slack:', e); }
+  } catch(e) {
+    console.log('Slack:', e);
+  }
 }
 
 (function() {
