@@ -220,6 +220,10 @@ body.dragging #drop-zone { display: flex; }
     <input class="search-box" type="text" placeholder="🔍 Buscar por palavra-chave..." id="search-input" oninput="applyFilters()" style="padding-right:28px;width:250px">
     <button class="keyword-clear" id="kw-clear" onclick="clearKeyword()" title="Limpar busca" style="display:none">✕</button>
   </div>
+  <div class="keyword-wrap">
+    <input class="search-box" type="text" placeholder="📝 Buscar no Assunto..." id="search-assunto" oninput="applyFilters()" style="padding-right:28px;width:220px">
+    <button class="keyword-clear" id="assunto-clear" onclick="clearAssunto()" title="Limpar busca de assunto" style="display:none">✕</button>
+  </div>
   <div class="sep"></div>
   <select id="f-status" onchange="applyFilters()">
     <option value="">Todos os status</option>
@@ -370,6 +374,7 @@ function renderSummary(tickets) {
 
 function applyFilters() {
   const search = document.getElementById('search-input').value.toLowerCase().trim();
+  const searchAssunto = document.getElementById('search-assunto').value.toLowerCase().trim();
   const fStatus = document.getElementById('f-status').value;
   const fGrupo = document.getElementById('f-grupo').value;
   const fAtribuido = document.getElementById('f-atribuido').value;
@@ -381,8 +386,11 @@ function applyFilters() {
 
   const kwClear = document.getElementById('kw-clear');
   if (kwClear) kwClear.style.display = search ? 'block' : 'none';
+  const assuntoClear = document.getElementById('assunto-clear');
+  if (assuntoClear) assuntoClear.style.display = searchAssunto ? 'block' : 'none';
 
   const keywords = search ? search.split(/\s+/).filter(Boolean) : [];
+  const assuntoKeywords = searchAssunto ? searchAssunto.split(/\s+/).filter(Boolean) : [];
 
   let result = allTickets.filter(t => {
     if (fStatus && t['Status do ticket'] !== fStatus) return false;
@@ -410,6 +418,11 @@ function applyFilters() {
         t['Nível✦ '] || '',
       ].join(' ').toLowerCase();
       if (!keywords.every(kw => hay.includes(kw))) return false;
+    }
+
+    if (assuntoKeywords.length) {
+      const assunto = (t['Assunto'] || '').toLowerCase();
+      if (!assuntoKeywords.every(kw => assunto.includes(kw))) return false;
     }
     return true;
   });
@@ -597,6 +610,11 @@ function clearDates() {
 
 function clearKeyword() {
   document.getElementById('search-input').value = '';
+  applyFilters();
+}
+
+function clearAssunto() {
+  document.getElementById('search-assunto').value = '';
   applyFilters();
 }
 
