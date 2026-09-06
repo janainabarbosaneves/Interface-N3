@@ -228,6 +228,9 @@ body.dragging #drop-zone { display: flex; }
   <select id="f-grupo" onchange="applyFilters()">
     <option value="">Todos os grupos</option>
   </select>
+  <select id="f-atribuido" onchange="applyFilters()">
+    <option value="">Todos os atribuídos</option>
+  </select>
   <select id="f-prioridade" onchange="applyFilters()">
     <option value="">Todas as prioridades</option>
     <option>Alta</option><option>Normal</option><option>Baixa</option>
@@ -273,9 +276,35 @@ let allTickets = [];
 let filtered = [];
 const now = new Date();
 
+// Mapeia nomes alternativos de coluna (ex: export "Global KPI Escalados" do
+// Zendesk) para os nomes canônicos que o app usa internamente, sem quebrar
+// compatibilidade com o formato original.
+const COLUMN_ALIASES = {
+  'ID':                      ['ID do ticket'],
+  'Assunto':                 ['Assunto do ticket'],
+  'Atribuído':               ['Nome do atribuído'],
+  'Solicitante':             ['Nome do solicitante'],
+  'Grupo':                   ['Grupo de tickets'],
+  'Prioridade':              ['Prioridade do ticket'],
+  'Data da solicitação':     ['Criação do ticket - Data'],
+  'Atualizado':              ['Resolução do ticket - Data'],
+};
+
+function normalizeRow(obj) {
+  Object.keys(COLUMN_ALIASES).forEach(canon => {
+    if (!obj[canon]) {
+      for (const alias of COLUMN_ALIASES[canon]) {
+        if (obj[alias]) { obj[canon] = obj[alias]; break; }
+      }
+    }
+  });
+  return obj;
+}
+
 function init(data) {
   allTickets = data;
   populateGrupos();
+  populateAtribuidos();
   updateStats();
   applyFilters();
   document.getElementById('h-date').textContent = now.toLocaleDateString('pt-BR');
@@ -287,6 +316,14 @@ function populateGrupos() {
   const sel = document.getElementById('f-grupo');
   grupos.forEach(g => {
     const o = document.createElement('option'); o.textContent = g; sel.appendChild(o);
+  });
+}
+
+function populateAtribuidos() {
+  const nomes = [...new Set(allTickets.map(t => t['Atribuído']).filter(Boolean))].sort();
+  const sel = document.getElementById('f-atribuido');
+  nomes.forEach(n => {
+    const o = document.createElement('option'); o.textContent = n; sel.appendChild(o);
   });
 }
 
@@ -335,6 +372,7 @@ function applyFilters() {
   const search = document.getElementById('search-input').value.toLowerCase().trim();
   const fStatus = document.getElementById('f-status').value;
   const fGrupo = document.getElementById('f-grupo').value;
+  const fAtribuido = document.getElementById('f-atribuido').value;
   const fPrio = document.getElementById('f-prioridade').value;
   const fNivel = document.getElementById('f-nivel').value;
   const sort = document.getElementById('f-sort').value;
@@ -349,6 +387,7 @@ function applyFilters() {
   let result = allTickets.filter(t => {
     if (fStatus && t['Status do ticket'] !== fStatus) return false;
     if (fGrupo  && t['Grupo'] !== fGrupo) return false;
+    if (fAtribuido && t['Atribuído'] !== fAtribuido) return false;
     if (fPrio   && t['Prioridade'] !== fPrio) return false;
     if (fNivel  && t['Nível✦ '] !== fNivel) return false;
 
@@ -395,10 +434,11 @@ function applyFilters() {
   renderSummary(result);
 
   const container = document.getElementById('tickets-container');
-  container.innerHTML = '';
   document.getElementById('empty').style.display = result.length ? 'none' : 'block';
 
-  result.forEach((t, i) => { container.innerHTML += renderChit(t, i); });
+  const html = [];
+  result.forEach((t, i) => { html.push(renderChit(t, i)); });
+  container.innerHTML = html.join('');
 }
 
 function renderChit(t, i) {
@@ -495,7 +535,9 @@ function handleFile(file) {
       } catch(ex) {}
       document.getElementById('h-total').textContent = tickets.length;
       document.getElementById('f-grupo').innerHTML = '<option value="">Todos os grupos</option>';
+      document.getElementById('f-atribuido').innerHTML = '<option value="">Todos os atribuídos</option>';
       populateGrupos();
+      populateAtribuidos();
       updateStats();
       applyFilters();
     } catch(err) {
@@ -505,29 +547,46 @@ function handleFile(file) {
   reader.readAsText(file, 'utf-8');
 }
 
+// Parser de CSV que respeita corretamente campos entre aspas contendo
+// quebras de linha (comum em descrições/assuntos de ticket com texto
+// multilinha). Percorre o texto inteiro caractere a caractere, em vez de
+// dividir por '\n' primeiro — isso evita registros quebrados/corrompidos
+// que travavam o app com arquivos grandes.
 function parseCSV(text) {
-  const lines = text.split('\n').filter(l => l.trim());
-  if (lines.length < 2) throw new Error('CSV vazio ou inválido');
-  const headers = parseLine(lines[0]);
-  return lines.slice(1).map(l => {
-    const vals = parseLine(l);
+  const rows = [];
+  let row = [];
+  let cur = '';
+  let inQ = false;
+  const len = text.length;
+  for (let i = 0; i < len; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') {
+        if (text[i+1] === '"') { cur += '"'; i++; }
+        else { inQ = false; }
+      } else {
+        cur += c;
+      }
+    } else {
+      if (c === '"') { inQ = true; }
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\r') { /* ignora, trata \r\n como \n */ }
+      else if (c === '\n') { row.push(cur); cur = ''; rows.push(row); row = []; }
+      else { cur += c; }
+    }
+  }
+  // última linha (caso o arquivo não termine com \n)
+  if (cur.length || row.length) { row.push(cur); rows.push(row); }
+
+  const nonEmptyRows = rows.filter(r => r.some(v => v.trim() !== ''));
+  if (nonEmptyRows.length < 2) throw new Error('CSV vazio ou inválido');
+
+  const headers = nonEmptyRows[0].map(h => h.replace(/^'/, '').trim());
+  return nonEmptyRows.slice(1).map(vals => {
     const obj = {};
     headers.forEach((h, i) => obj[h] = (vals[i]||'').replace(/^'/, '').trim());
-    return obj;
+    return normalizeRow(obj);
   }).filter(r => r[headers[0]]);
-}
-
-function parseLine(line) {
-  const result = []; let cur = ''; let inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"' && !inQ) { inQ = true; }
-    else if (c === '"' && inQ) { if (line[i+1] === '"') { cur += '"'; i++; } else inQ = false; }
-    else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
-    else cur += c;
-  }
-  result.push(cur);
-  return result;
 }
 
 function clearDates() {
